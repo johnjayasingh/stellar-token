@@ -69,9 +69,9 @@ const _sendToken = async (issuer, receiver, token, amount) => {
 }
 
 const _process = async () => {
-    const issuer = 'SDYHEV2MT73EJZC6SBAXI6NV6GY3G6GHGPGQ2ER6WHSIZJBGF26ISWUN' || await _createAccount();
+    const issuer = await _createAccount();
     console.log(`Created Issuer ${issuer}`)
-    const receiver = 'SBYZJNP5QIFRINUP4IHAINTD7N3VTOOPARFR6BUREQZL3PEOQPW53QHS' || await _createAccount();
+    const receiver = await _createAccount();
     console.log(`Created Receiver ${receiver}`)
 
     const token = _createToken(issuer);
