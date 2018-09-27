@@ -1,39 +1,49 @@
-var StellarSdk = require('stellar-sdk')
-StellarSdk.Network.useTestNetwork();
-var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+const {
+    StellarSdk,
+    token,
+    server
+} = require('./network');
+const account = require('./account');
 
-var pair = StellarSdk.Keypair.random();
+const _createAccount = () => {
+    let pair
+    return account
+        .createAccount()
+        .then((_pair) => {
+            pair = _pair;
+            return account
+                .getBalance(pair.publicKey())
+        })
+        .then(balances => {
+            console.log(balances);
+            return pair.secret();
+        })
+}
 
-pair.secret();
-// SAV76USXIJOBMEQXPANUOQM6F5LIOTLPDIDVRJBFFE2MDJXG24TAPUU7
-pair.publicKey();
-// GCFXHS4GXL6BVUCXBWXGTITROWLVYXQKQLF4YH5O5JT3YZXCYPAFBJZB
+const _createToken = async (issuer, receiver) => {
 
-var request = require('request');
-request.get({
-    url: 'https://friendbot.stellar.org',
-    qs: {
-        addr: pair.publicKey()
-    },
-    json: true
-}, function (error, response, body) {
-    if (error || response.statusCode !== 200) {
-        console.error('CREATE ACCOUNT ERROR!', error || body);
-    } else {
-        console.log('SUCCESS! You have a new account :)\n', body);
+    const receiverPair = account.getAccount(receiver);
+    const issuerPair = account.getAccount(issuer);
 
-        var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+    // Create an object to represent the new asset
+    const JohnnyDollar = new StellarSdk.Asset('JohnnyDollar', issuerPair.publicKey());
+    const receiverAccount = await server.loadAccount(receiverPair.publicKey());
+    const transaction = new StellarSdk.TransactionBuilder(receiverAccount)
+        // The `changeTrust` operation creates (or alters) a trustline
+        .addOperation(StellarSdk.Operation.changeTrust({
+            asset: JohnnyDollar
+        }))
+        .build();
+    transaction.sign(receiverPair);
+    await server.submitTransaction(transaction);
+}
 
-        // the JS SDK uses promises for most actions, such as retrieving an account
-        server.loadAccount(pair.publicKey()).then(function (account) {
-            console.log('Balances for account: ' + pair.publicKey());
-            account.balances.forEach(function (balance) {
-                console.log('Type:', balance.asset_type, ', Balance:', balance.balance);
-            });
-        });
-    }
-});
-
-
-
-// addPreAuthSigner(pair.secret())
+// const issuer = await _createAccount();
+// console.log(`Created Issuer ${issuer}`)
+// const receiver = await _createAccount();
+// console.log(`Created Receiver ${receiver}`)
+// _createToken('SAPSLKZES66AIGAMVCDXGQT4SGGTT5GULS7H32CLHFWYWSPHUVLUPP75', 'SA46W4IBKX7N2DDOTFTVEH6LEFQWBYPHZDRLQS6ZWAKZEFRF2QTZQKTZ');
+const issuerPair = account.getAccount('SA46W4IBKX7N2DDOTFTVEH6LEFQWBYPHZDRLQS6ZWAKZEFRF2QTZQKTZ');
+account.getBalance(issuerPair.publicKey()).then(balances=>{
+    console.log(balances)
+})
