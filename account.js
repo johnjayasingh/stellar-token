@@ -24,7 +24,8 @@ module.exports = {
             })
         })
     },
-    getAccount: publicKey => StellarSdk.Keypair.fromSecret(publicKey),
+    getAccount: secret => StellarSdk.Keypair.fromSecret(secret),
+    getAccountByPublicKey: publicKey => StellarSdk.Keypair.fromPublicKey(publicKey),
     getBalance: publicKey => // the JS SDK uses promises for most actions, such as retrieving an account
         server.loadAccount(publicKey)
         .then(function (account) {
