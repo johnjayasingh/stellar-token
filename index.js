@@ -68,6 +68,10 @@ const _sendToken = async (issuer, receiver, token, amount) => {
     return server.submitTransaction(transaction);
 }
 
+/**
+ * Creates account and generate token then supply it to the receiver 
+ * after he changes trust on the asset type
+ */
 const _process = async () => {
     const issuer = await _createAccount();
     console.log(`Created Issuer ${issuer}`)
